@@ -1,0 +1,39 @@
+# File Database SQL
+database.sql
+*.sql
+
+# Maven Build Artifacts
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# IntelliJ IDEA & VS Code
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# OS Generated Files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Log files
+*.log
+
