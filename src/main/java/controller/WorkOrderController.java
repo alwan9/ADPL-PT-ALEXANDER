@@ -2,6 +2,7 @@ package controller;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.JOptionPane;
 
 import dao.WorkOrderDAO;
 import model.WorkOrder;
@@ -32,6 +33,7 @@ public class WorkOrderController {
     private void initListeners() {
         dashboardView.addTambahListener(new BukaTambahDialogListener());
         dashboardView.addEditListener(new BukaEditDialogListener());
+        dashboardView.addHapusListener(new HapusWorkOrderListener());
         dashboardView.addRefreshListener(e -> refreshData());
     }
 
@@ -202,6 +204,60 @@ public class WorkOrderController {
                 dashboardView.loadWorkOrderData();
             } else {
                 dialog.showError("Gagal memperbarui data Work Order ke database!\nSilakan periksa kembali data Anda.");
+            }
+        }
+    }
+
+    /**
+     * Listener saat tombol "Hapus Data" di Dashboard diklik.
+     */
+    private class HapusWorkOrderListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String selectedId = dashboardView.getSelectedWorkOrderId();
+            if (selectedId == null) {
+                dashboardView.showWarningMessage(
+                        "Silakan pilih baris Work Order pada tabel yang ingin dihapus terlebih dahulu!",
+                        "Peringatan Pilihan"
+                );
+                return;
+            }
+
+            int confirm = JOptionPane.showConfirmDialog(
+                    dashboardView,
+                    "Apakah Anda yakin ingin menghapus Work Order (" + selectedId + ")?\nData yang dihapus tidak dapat dikembalikan.",
+                    "Konfirmasi Hapus Data",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            if (confirm != JOptionPane.YES_OPTION) {
+                return;
+            }
+
+            // Validasi koneksi database
+            if (config.Koneksi.getConnection() == null) {
+                dashboardView.showErrorMessage(
+                        "Koneksi database tidak aktif!\nPastikan MySQL/XAMPP aktif.",
+                        "Koneksi Gagal"
+                );
+                return;
+            }
+
+            // Hapus data melalui DAO (Model)
+            boolean success = workOrderDAO.delete(selectedId);
+
+            if (success) {
+                dashboardView.showSuccessMessage(
+                        "Data Work Order (" + selectedId + ") berhasil dihapus!",
+                        "Sukses Hapus"
+                );
+                dashboardView.loadWorkOrderData();
+            } else {
+                dashboardView.showErrorMessage(
+                        "Gagal menghapus data Work Order (" + selectedId + ") dari database!",
+                        "Gagal Hapus"
+                );
             }
         }
     }

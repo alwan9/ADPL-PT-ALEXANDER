@@ -228,6 +228,34 @@ public class WorkOrderDAO {
     }
 
     /**
+     * Menghapus data Work Order berdasarkan id_wo.
+     */
+    public boolean delete(String idWo) {
+        Connection conn = Koneksi.getConnection();
+        if (conn == null) {
+            System.err.println("[WorkOrderDAO] Koneksi null saat delete!");
+            return false;
+        }
+
+        String sql1 = "DELETE FROM workOrder WHERE id_wo = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql1)) {
+            ps.setString(1, idWo);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e1) {
+            // Fallback jika tabel menggunakan work_order
+            String sql2 = "DELETE FROM work_order WHERE id_wo = ?";
+            try (PreparedStatement ps2 = conn.prepareStatement(sql2)) {
+                ps2.setString(1, idWo);
+                return ps2.executeUpdate() > 0;
+            } catch (SQLException e2) {
+                System.err.println("[WorkOrderDAO] Gagal menghapus data work order: " + e2.getMessage());
+                return false;
+            }
+        }
+    }
+
+    /**
      * Mengambil ID urutan berikutnya (contoh: WO-0000004).
      */
     public String generateNextId() {

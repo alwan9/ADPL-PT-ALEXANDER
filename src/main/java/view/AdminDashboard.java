@@ -63,6 +63,7 @@ public class AdminDashboard extends javax.swing.JFrame {
     private JButton btnRefresh;
     private JButton btnTambah;
     private JButton btnEdit;
+    private JButton btnHapus;
 
     public AdminDashboard() {
         this(new Admin(1, "Administrator", "admin", "admin123"));
@@ -352,6 +353,12 @@ public class AdminDashboard extends javax.swing.JFrame {
                 new Color(230, 126, 34)
         );
 
+        btnHapus = createStyledButton(
+                "Hapus Data",
+                FontIcon.of(FontAwesomeSolid.TRASH_ALT, 13, Color.WHITE),
+                new Color(231, 76, 60)
+        );
+
         JButton btnDetail = createStyledButton(
                 "Lihat Detail & QR Code",
                 FontIcon.of(FontAwesomeSolid.EYE, 14, Color.WHITE),
@@ -360,6 +367,7 @@ public class AdminDashboard extends javax.swing.JFrame {
         btnDetail.addActionListener(e -> showDetailWorkOrderDialog());
 
         bottomActionPanel.add(btnEdit);
+        bottomActionPanel.add(btnHapus);
         bottomActionPanel.add(btnDetail);
         bottomPanel.add(bottomActionPanel, BorderLayout.EAST);
 
@@ -411,6 +419,12 @@ public class AdminDashboard extends javax.swing.JFrame {
         }
     }
 
+    public void addHapusListener(ActionListener listener) {
+        if (btnHapus != null) {
+            btnHapus.addActionListener(listener);
+        }
+    }
+
     public String getSelectedWorkOrderId() {
         int selectedRow = tableWorkOrder.getSelectedRow();
         if (selectedRow == -1) {
@@ -422,6 +436,14 @@ public class AdminDashboard extends javax.swing.JFrame {
 
     public void showWarningMessage(String message, String title) {
         JOptionPane.showMessageDialog(this, message, title, JOptionPane.WARNING_MESSAGE);
+    }
+
+    public void showSuccessMessage(String message, String title) {
+        JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public void showErrorMessage(String message, String title) {
+        JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
     }
 
     private void filterTable() {
