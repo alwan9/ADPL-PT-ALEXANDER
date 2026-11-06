@@ -60,6 +60,8 @@ public class AdminDashboard extends javax.swing.JFrame {
     private TableRowSorter<DefaultTableModel> rowSorter;
     private JTextField txtSearch;
     private JLabel lblTotalData;
+    private JButton btnRefresh;
+    private JButton btnTambah;
 
     public AdminDashboard() {
         this(new Admin(1, "Administrator", "admin", "admin123"));
@@ -78,6 +80,7 @@ public class AdminDashboard extends javax.swing.JFrame {
         }
 
         setupWorkOrderUI();
+        new controller.WorkOrderController(this, workOrderDAO);
         loadWorkOrderData();
     }
 
@@ -239,13 +242,17 @@ public class AdminDashboard extends javax.swing.JFrame {
         });
 
         // Refresh Button dengan Ikonli
-        JButton btnRefresh = createStyledButton("Refresh", FontIcon.of(FontAwesomeSolid.SYNC_ALT, 13, Color.WHITE),
+        btnRefresh = createStyledButton("Refresh", FontIcon.of(FontAwesomeSolid.SYNC_ALT, 13, Color.WHITE),
                 new Color(52, 152, 219));
-        btnRefresh.addActionListener(e -> loadWorkOrderData());
+
+        // Tambah Work Order Button dengan Ikonli
+        btnTambah = createStyledButton("Tambah Work Order", FontIcon.of(FontAwesomeSolid.PLUS_CIRCLE, 13, Color.WHITE),
+                new Color(39, 174, 96));
 
         actionPanel.add(lblSearch);
         actionPanel.add(txtSearch);
         actionPanel.add(btnRefresh);
+        actionPanel.add(btnTambah);
         topPanel.add(actionPanel, BorderLayout.EAST);
 
         cardPanel.add(topPanel, BorderLayout.NORTH);
@@ -362,6 +369,18 @@ public class AdminDashboard extends javax.swing.JFrame {
         }
 
         lblTotalData.setText("Total: " + list.size() + " Work Order");
+    }
+
+    public void addTambahListener(ActionListener listener) {
+        if (btnTambah != null) {
+            btnTambah.addActionListener(listener);
+        }
+    }
+
+    public void addRefreshListener(ActionListener listener) {
+        if (btnRefresh != null) {
+            btnRefresh.addActionListener(listener);
+        }
     }
 
     private void filterTable() {
