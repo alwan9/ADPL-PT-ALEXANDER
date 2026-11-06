@@ -6,11 +6,12 @@ import java.awt.event.ActionListener;
 import dao.WorkOrderDAO;
 import model.WorkOrder;
 import view.AdminDashboard;
+import view.EditWorkOrderDialog;
 import view.TambahWorkOrderDialog;
 
 /**
  * Controller untuk pengelolaan Work Order (Arsitektur MVC).
- * Menghubungkan View (AdminDashboard & TambahWorkOrderDialog) dengan Model (WorkOrder & WorkOrderDAO).
+ * Menghubungkan View (AdminDashboard, TambahWorkOrderDialog, & EditWorkOrderDialog) dengan Model (WorkOrder & WorkOrderDAO).
  */
 public class WorkOrderController {
 
@@ -30,6 +31,7 @@ public class WorkOrderController {
 
     private void initListeners() {
         dashboardView.addTambahListener(new BukaTambahDialogListener());
+        dashboardView.addEditListener(new BukaEditDialogListener());
         dashboardView.addRefreshListener(e -> refreshData());
     }
 
@@ -108,5 +110,99 @@ public class WorkOrderController {
             }
         }
     }
-}
 
+    /**
+     * Listener saat tombol "Edit Data" di Dashboard diklik.
+     */
+    private class BukaEditDialogListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String selectedId = dashboardView.getSelectedWorkOrderId();
+            if (selectedId == null) {
+                dashboardView.showWarningMessage(
+                        "Silakan pilih baris Work Order pada tabel yang ingin diedit terlebih dahulu!",
+                        "Peringatan Pilihan"
+                );
+                return;
+            }
+
+            WorkOrder wo = workOrderDAO.getById(selectedId);
+            if (wo == null) {
+                dashboardView.showWarningMessage(
+                        "Data Work Order (" + selectedId + ") tidak ditemukan di database!",
+                        "Data Tidak Ditemukan"
+                );
+                return;
+            }
+
+            EditWorkOrderDialog dialog = new EditWorkOrderDialog(dashboardView, true);
+            dialog.setData(
+                    wo.getIdWo(),
+                    wo.getNamaWorkOrder(),
+                    wo.getWorker(),
+                    wo.getPelanggan(),
+                    wo.getNoWa(),
+                    wo.getEstimasi(),
+                    wo.getQrCode()
+            );
+
+            dialog.addSimpanListener(new SimpanEditWorkOrderListener(dialog));
+            dialog.addBatalListener(ev -> dialog.closeDialog());
+
+            dialog.setVisible(true);
+        }
+    }
+
+    /**
+     * Listener saat tombol "Simpan Perubahan" di dialog edit diklik.
+     */
+    private class SimpanEditWorkOrderListener implements ActionListener {
+        private final EditWorkOrderDialog dialog;
+
+        public SimpanEditWorkOrderListener(EditWorkOrderDialog dialog) {
+            this.dialog = dialog;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String idWo = dialog.getIdWo();
+            String nama = dialog.getNamaWorkOrder();
+            String worker = dialog.getWorker();
+            String pelanggan = dialog.getPelanggan();
+            String noWa = dialog.getNoWa();
+            String estimasi = dialog.getEstimasi();
+            String qrCode = dialog.getQrCode();
+
+            // Validasi Input
+            if (nama.isEmpty() || worker.isEmpty() || pelanggan.isEmpty() || noWa.isEmpty() || estimasi.isEmpty()) {
+                dialog.showWarning("Semua kolom wajib diisi!");
+                return;
+            }
+
+            if (!noWa.matches("^[0-9+]{6,20}$")) {
+                dialog.showWarning("Nomor WhatsApp harus berupa angka yang valid (contoh: 08123456789)!");
+                return;
+            }
+
+            // Validasi koneksi database
+            if (config.Koneksi.getConnection() == null) {
+                dialog.showError("Koneksi database tidak aktif!\nPastikan MySQL/XAMPP aktif.");
+                return;
+            }
+
+            // Buat Object Model WorkOrder terupdate
+            WorkOrder updatedWo = new WorkOrder(idWo, nama, worker, pelanggan, noWa, estimasi, qrCode);
+
+            // Perbarui data di Database melalui DAO
+            boolean success = workOrderDAO.update(updatedWo);
+
+            if (success) {
+                dialog.showSuccess("Data Work Order (" + idWo + ") berhasil diperbarui!");
+                dialog.closeDialog();
+                dashboardView.loadWorkOrderData();
+            } else {
+                dialog.showError("Gagal memperbarui data Work Order ke database!\nSilakan periksa kembali data Anda.");
+            }
+        }
+    }
+}

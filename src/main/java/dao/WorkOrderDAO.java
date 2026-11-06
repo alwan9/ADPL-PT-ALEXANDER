@@ -92,6 +92,56 @@ public class WorkOrderDAO {
     }
 
     /**
+     * Mengambil data Work Order spesifik berdasarkan id_wo.
+     */
+    public WorkOrder getById(String idWo) {
+        Connection conn = Koneksi.getConnection();
+        if (conn == null) {
+            return null;
+        }
+
+        String sql = "SELECT * FROM workOrder WHERE id_wo = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, idWo);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String nama = rs.getString("nama_workorder");
+                    String worker = rs.getString("worker");
+                    String pelanggan = rs.getString("pelanggan");
+                    String noWa = getColumnSafely(rs, "noWa", "no_wa");
+                    String estimasi = rs.getString("estimasi");
+                    String qrCode = getColumnSafely(rs, "qrCode", "qr_code");
+                    Timestamp createdAt = rs.getTimestamp("created_at");
+                    Timestamp updatedAt = rs.getTimestamp("updated_at");
+
+                    return new WorkOrder(idWo, nama, worker, pelanggan, noWa, estimasi, qrCode, createdAt, updatedAt);
+                }
+            }
+        } catch (SQLException e1) {
+            try (PreparedStatement ps2 = conn.prepareStatement("SELECT * FROM work_order WHERE id_wo = ?")) {
+                ps2.setString(1, idWo);
+                try (ResultSet rs2 = ps2.executeQuery()) {
+                    if (rs2.next()) {
+                        String nama = rs2.getString("nama_workorder");
+                        String worker = rs2.getString("worker");
+                        String pelanggan = rs2.getString("pelanggan");
+                        String noWa = getColumnSafely(rs2, "noWa", "no_wa");
+                        String estimasi = rs2.getString("estimasi");
+                        String qrCode = getColumnSafely(rs2, "qrCode", "qr_code");
+                        Timestamp createdAt = rs2.getTimestamp("created_at");
+                        Timestamp updatedAt = rs2.getTimestamp("updated_at");
+
+                        return new WorkOrder(idWo, nama, worker, pelanggan, noWa, estimasi, qrCode, createdAt, updatedAt);
+                    }
+                }
+            } catch (SQLException e2) {
+                System.err.println("[WorkOrderDAO] Gagal mengambil data by id: " + e2.getMessage());
+            }
+        }
+        return null;
+    }
+
+    /**
      * Menyimpan data Work Order baru ke dalam database.
      */
     public boolean insert(WorkOrder wo) {
@@ -130,6 +180,48 @@ public class WorkOrderDAO {
                 return ps2.executeUpdate() > 0;
             } catch (SQLException e2) {
                 System.err.println("[WorkOrderDAO] Gagal menyimpan data work order: " + e2.getMessage());
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Memperbarui data Work Order yang ada berdasarkan id_wo.
+     */
+    public boolean update(WorkOrder wo) {
+        Connection conn = Koneksi.getConnection();
+        if (conn == null) {
+            System.err.println("[WorkOrderDAO] Koneksi null saat update!");
+            return false;
+        }
+
+        String sql1 = "UPDATE workOrder SET nama_workorder = ?, worker = ?, pelanggan = ?, noWa = ?, estimasi = ? "
+                    + "WHERE id_wo = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql1)) {
+            ps.setString(1, wo.getNamaWorkOrder());
+            ps.setString(2, wo.getWorker());
+            ps.setString(3, wo.getPelanggan());
+            ps.setString(4, wo.getNoWa());
+            ps.setString(5, wo.getEstimasi());
+            ps.setString(6, wo.getIdWo());
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e1) {
+            // Fallback jika tabel bernama work_order dengan snake_case no_wa
+            String sql2 = "UPDATE work_order SET nama_workorder = ?, worker = ?, pelanggan = ?, no_wa = ?, estimasi = ? "
+                        + "WHERE id_wo = ?";
+            try (PreparedStatement ps2 = conn.prepareStatement(sql2)) {
+                ps2.setString(1, wo.getNamaWorkOrder());
+                ps2.setString(2, wo.getWorker());
+                ps2.setString(3, wo.getPelanggan());
+                ps2.setString(4, wo.getNoWa());
+                ps2.setString(5, wo.getEstimasi());
+                ps2.setString(6, wo.getIdWo());
+
+                return ps2.executeUpdate() > 0;
+            } catch (SQLException e2) {
+                System.err.println("[WorkOrderDAO] Gagal memperbarui data work order: " + e2.getMessage());
                 return false;
             }
         }

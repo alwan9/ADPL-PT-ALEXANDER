@@ -62,6 +62,7 @@ public class AdminDashboard extends javax.swing.JFrame {
     private JLabel lblTotalData;
     private JButton btnRefresh;
     private JButton btnTambah;
+    private JButton btnEdit;
 
     public AdminDashboard() {
         this(new Admin(1, "Administrator", "admin", "admin123"));
@@ -332,7 +333,7 @@ public class AdminDashboard extends javax.swing.JFrame {
         scrollPane.setBorder(BorderFactory.createLineBorder(new Color(220, 224, 230), 1));
         cardPanel.add(scrollPane, BorderLayout.CENTER);
 
-        // 3. Bottom Panel (Status & Detail Viewer Button)
+        // 3. Bottom Panel (Status & Action Buttons)
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setOpaque(false);
 
@@ -340,6 +341,27 @@ public class AdminDashboard extends javax.swing.JFrame {
         lblTotalData.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         lblTotalData.setForeground(new Color(127, 140, 141));
         bottomPanel.add(lblTotalData, BorderLayout.WEST);
+
+        // Action Buttons: Edit Data & Lihat Detail
+        JPanel bottomActionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        bottomActionPanel.setOpaque(false);
+
+        btnEdit = createStyledButton(
+                "Edit Data",
+                FontIcon.of(FontAwesomeSolid.EDIT, 13, Color.WHITE),
+                new Color(230, 126, 34)
+        );
+
+        JButton btnDetail = createStyledButton(
+                "Lihat Detail & QR Code",
+                FontIcon.of(FontAwesomeSolid.EYE, 14, Color.WHITE),
+                new Color(142, 68, 173)
+        );
+        btnDetail.addActionListener(e -> showDetailWorkOrderDialog());
+
+        bottomActionPanel.add(btnEdit);
+        bottomActionPanel.add(btnDetail);
+        bottomPanel.add(bottomActionPanel, BorderLayout.EAST);
 
         cardPanel.add(bottomPanel, BorderLayout.SOUTH);
         cardPanel.revalidate();
@@ -381,6 +403,25 @@ public class AdminDashboard extends javax.swing.JFrame {
         if (btnRefresh != null) {
             btnRefresh.addActionListener(listener);
         }
+    }
+
+    public void addEditListener(ActionListener listener) {
+        if (btnEdit != null) {
+            btnEdit.addActionListener(listener);
+        }
+    }
+
+    public String getSelectedWorkOrderId() {
+        int selectedRow = tableWorkOrder.getSelectedRow();
+        if (selectedRow == -1) {
+            return null;
+        }
+        int modelRow = tableWorkOrder.convertRowIndexToModel(selectedRow);
+        return String.valueOf(tableModel.getValueAt(modelRow, 0));
+    }
+
+    public void showWarningMessage(String message, String title) {
+        JOptionPane.showMessageDialog(this, message, title, JOptionPane.WARNING_MESSAGE);
     }
 
     private void filterTable() {
